@@ -28,13 +28,32 @@
 	websocket.onclose = function(evt) {};
 	}
 	
+	
+	function getFormattedDateTime() {
+    const now = new Date();
+    
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    const day = String(now.getDate()).padStart(2, '0');
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    const month = monthNames[now.getMonth()];
+    const year = now.getFullYear();
+    
+    return `${hours}:${minutes}:${seconds} ${day} ${month} ${year}`;
+}
+	
     function wsOpen(width) { 
-	   //alert("连接成功");
-	  // alert("{\"typeName\":\"UgeeStartSign\",\"message\":{\"penwidth\":\""+width+"\"}}");
-
-	  doSend("{\"typeName\":\"UgeeStartSign\",\"message\":{\"penwidth\":\""+width+"\"}}");	
-	//doSend("{\"typeName\":\"UgeeStartFinger\",\"message\":{\"quality\":\""+width+"\"}}");	
-	//doSend("{\"typeName\":\"UgeeStartSignFinger\",\"message\":{\"penwidth\":\""+width+"\",\"quality\":\""+width+"\"}}");
+	  
+	var data = getFormattedDateTime();//Date
+	var name = "who";				  //name
+	 doSend("{\"typeName\":\"UgeeStartSign\",\"message\":{\"penwidth\":\""+width+"\",\"data\":\""+data+"\",\"name\":\""+name+"\"}}");	//Signature
+	//doSend("{\"typeName\":\"UgeeStartFinger\",\"message\":{\"quality\":\""+width+"\"}}");				//Finger,This interface does not support the parameters name and data
+	//doSend("{\"typeName\":\"UgeeStartSignFinger\",\"message\":{\"penwidth\":\""+width+"\",\"quality\":\""+width+"\",\"data\":\""+data+"\",\"name\":\""+name+"\"}}");//Signature and Finger
 	}
 
 	
@@ -55,21 +74,21 @@
 		
 		}else if("UgeeSignBase64" == obj.typeName){
 			var retBase64 = obj.message;			
-			postImg(retBase64);		
+			postImg(retBase64);		//Signature base64 callback
 		}else if("UgeeFingerBase64" == obj.typeName){
 			var retBase64 = obj.message;			
-			postImg(retBase64);	
+			postImg(retBase64);		//Finger base64 callback
 		}else if("UgeeSignFBase64" == obj.typeName){
 			var retBase64 = obj.message;			
-			postImg(retBase64);		
+			postImg(retBase64);		//Signature and Finger base64 callback
 		}else if("UgeeANSITemplate" == obj.typeName){
-			 retANSIBase64 = obj.message;					
+			 retANSIBase64 = obj.message;//ANSIT standardizes fingerprint feature codes
 		}else if("UgeeISOTemplate" == obj.typeName){
-			 retISOBase64 = obj.message;	
+			 retISOBase64 = obj.message;//ISO standardizes fingerprint feature codes
 		}else if("CompareResult" == obj.typeName){
-			var retCompare = obj.message;					
+			var retCompare = obj.message;//Fingerprint feature code comparison value callback
 		}else if("UgeeCancel" == obj.typeName){
-			cssStatusChange();
+			cssStatusChange();//Cancel the event information callback
 			
 		}else if("UgeeOK" == obj.typeName){
 			cssStatusChange();
@@ -101,8 +120,8 @@
 	
 	  if(stopflag==1){
 		wsOpen(width);
-		document.getElementById("stopinput").style.cssText="width:100px;height:30px;margin-left:100px;background-color:#50C6F3";
-		document.getElementById("startinput").style.cssText="width:100px;height:30px;margin-left:150px;background-color:#E4E4E4;";
+		document.getElementById("stopinput").style.cssText="width:100px;height:30px;margin-left:0px;background-color:#50C6F3";
+		document.getElementById("startinput").style.cssText="width:100px;height:30px;margin-left:30px;background-color:#E4E4E4;";
 		startflag=1;
 		stopflag=0;
 		}
@@ -120,21 +139,21 @@
  
  function cssStatusChange()
  {
- 		document.getElementById("stopinput").style.cssText="width:100px;height:30px;margin-left:100px;background-color:#E4E4E4";
-		document.getElementById("startinput").style.cssText="width:100px;height:30px;margin-left:150px;background-color:#50C6F3";
+ 		document.getElementById("stopinput").style.cssText="width:100px;height:30px;margin-left:0px;background-color:#E4E4E4";
+		document.getElementById("startinput").style.cssText="width:100px;height:30px;margin-left:30px;background-color:#50C6F3";
 		startflag=0;
 		stopflag=1;
  }
 
-
+//Obtain the ANSI standard fingerprint feature code
  function UgeeGetANSITemplate(){
 		doSend("{\"typeName\":\"UgeeGetANSITemplate\"}");	
  }
- 
+ //Obtain the ISO standard fingerprint feature code
   function UgeeGetISOTemplate(){
 		doSend("{\"typeName\":\"UgeeGetISOTemplate\"}");	
  }
- 
+ //The comparison was made using the fingerprint feature code. If the value was greater than 50, the comparison was successful
   function UgeeCompareTemplates(){
 	doSend("{\"typeName\":\"UgeeCompareTemplates\",\"message\":{\"template1\":\""+retANSIBase64+"\",\"template2\":\""+retISOBase64+"\"}}");
  }
@@ -169,10 +188,7 @@
             <textarea id="address"  >
 Beijing, China</textarea>
 
-            <div id="logo">
-              <img id="image" width = "179px" height="48px"  src="images/logo_cn.png" alt="logo" />
-            </div>	
-		
+           
 		</div>
 		
 		<div style="clear:both"></div>
@@ -237,7 +253,7 @@ Beijing, China</textarea>
 		  
 		  <tr id="hiderow">	
 		    <td colspan="5"><a id="customer-title" style="margin-right:40px;" title="Add a row">Customer signature:</a>
-			 Signature width setting: <input type="text" id="penwidth" style="width:100px;height:30px;" value=""></input>
+			 Signature width setting: <input type="text" id="penwidth" style="width:50px;height:30px;" value=""></input>
 			<input id="startinput" type="button" value="Start signing" style="width:100px;height:30px;margin-left:30px;background-color:#50C6F3" onclick="Ugeestart()"></input>
 			<input id="stopinput" type="button" value= "Closing signature" style="width:100px;height:30px;margin-left:0px;background-color:#E4E4E4;" onclick="Ugeestop()"></input>
 			</td>
